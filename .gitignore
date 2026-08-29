@@ -4,9 +4,11 @@
 !.env.example
 
 # Local app settings
-appsettings.Development.json
-appsettings.Local.json
-appsettings.*.Local.json
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+!**/appsettings.example.json
 
 # .NET / build outputs
 [Bb]in/
