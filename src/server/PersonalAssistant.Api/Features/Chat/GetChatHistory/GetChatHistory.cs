@@ -21,17 +21,16 @@ public record GetChatHistoryResponse(
 
 public class GetChatHistoryHandler(AppDbContext db)
 {
-    private readonly AppDbContext _db = db;
 
     public async Task<GetChatHistoryResponse?> HandleAsync(Guid sessionId, CancellationToken ct)
     {
-        var sessionExists = await _db.ChatSessions.AnyAsync(s => s.Id == sessionId, ct);
+        var sessionExists = await db.ChatSessions.AnyAsync(s => s.Id == sessionId, ct);
         if (!sessionExists)
         {
             return null; // La sesión no existe
         }
 
-        var messages = await _db.ChatMessages
+        var messages = await db.ChatMessages
             .AsNoTracking()
             .Where(m => m.SessionId == sessionId)
             .OrderBy(m => m.CreatedAt)
