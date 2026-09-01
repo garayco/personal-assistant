@@ -9,8 +9,6 @@ using PersonalAssistant.Api.Common.Contracts.AiService;
 public interface ILlmClient
 {
     Task<string> GenerateResponseAsync(AiServiceRequest aiRequest, CancellationToken cancellationToken = default);
-    Task<string> SummarizeAsync(SummarizeRequest summarizeRequest, CancellationToken cancellationToken = default);
-
 }
 
 public class AiServiceOptions
@@ -48,10 +46,5 @@ public class OpenAiLlmClient : ILlmClient
         string? result = await response.Content.ReadFromJsonAsync<string>(cancellationToken: ct);
 
         return result ?? "Sin respuesta del modelo.";
-    }
-
-    public Task<string> SummarizeAsync(SummarizeRequest summarizeRequest, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
     }
 }

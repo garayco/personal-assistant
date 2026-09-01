@@ -17,8 +17,3 @@ public record AiServiceRequest(
     string Tone,
     bool ShouldSummarize
 );
-
-public record SummarizeRequest(
-    string? CurrentSummary,
-    List<ChatMessageItem> UnsummarizedMessages
-);
