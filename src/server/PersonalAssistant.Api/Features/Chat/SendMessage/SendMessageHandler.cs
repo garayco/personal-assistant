@@ -1,10 +1,14 @@
 namespace PersonalAssistant.Api.Features.Chat.SendMessage;
 
+using Microsoft.EntityFrameworkCore;
+
 using PersonalAssistant.Api.Domain.Enums;
 using PersonalAssistant.Api.Domain.Entities;
-using PersonalAssistant.Api.Infrastructure.Database;
-using PersonalAssistant.Api.Infrastructure.Llm;
 
+using PersonalAssistant.Api.Infrastructure.Llm;
+using PersonalAssistant.Api.Infrastructure.Database;
+
+using PersonalAssistant.Api.Common.Contracts.AiService;
 
 public class SendMessageHandler(AppDbContext db, ILlmClient llmClient)
 {
@@ -25,14 +29,38 @@ public class SendMessageHandler(AppDbContext db, ILlmClient llmClient)
             CreatedAt = DateTime.UtcNow
         };
         db.ChatMessages.Add(userMessage);
-
-        // Se guarda en PostgreSQL: si el LLM falla, el prompt del usuario no se pierde
         await db.SaveChangesAsync(ct);
 
-        // 3. Ejecutar inferencia con el modelo de lenguaje (LLM)
-        string aiReply = await llmClient.GenerateResponseAsync(request.Message, ct);
+        // 3) Leer historial reciente del chat
+        var recentHistory = await db.ChatMessages
+            .AsNoTracking()
+            .Where(m => m.SessionId == chatSession.Id && m.Id != userMessage.Id)
+            .Take(8)
+            .OrderBy(m => m.CreatedAt)
+            .Select(m => new ChatMessageItem(m.Role, m.Content))
+            .ToListAsync(ct);
 
-        // 4. Registrar la respuesta del asistente
+        // crea flag de resumen
+        int totalMessagesCount = await db.ChatMessages
+            .CountAsync(m => m.SessionId == chatSession.Id, ct);
+        bool shouldSummarize = chatSession.Messages.Count >= 8 && (totalMessagesCount % 8 == 0);
+
+        // 4) Crear el request para el servicio de IA
+        var aiRequest = new AiServiceRequest(
+            SessionId: chatSession.Id,
+            UserMessage: userMessage.Content,
+            History: recentHistory,
+            CurrentSumary: chatSession.Summary,
+            Task: "chat",
+            Persona: "assistant personal",
+            Tone: "concise",
+            ShouldSummarize: shouldSummarize
+        );
+
+        // 5) Llamar al servicio de IA
+        var aiReply = await llmClient.GenerateResponseAsync(aiRequest, ct);
+
+        // 6) Guardar la respuesta del asistente
         var assistantMessage = new ChatMessage
         {
             SessionId = chatSession.Id,
@@ -43,7 +71,7 @@ public class SendMessageHandler(AppDbContext db, ILlmClient llmClient)
         db.ChatMessages.Add(assistantMessage);
         await db.SaveChangesAsync(ct);
 
-        // 5. Retornar DTO de respuesta
+        // 7) Devolver la respuesta
         return new SendMessageResponse(
             Id: assistantMessage.Id,
             SessionId: assistantMessage.SessionId,
