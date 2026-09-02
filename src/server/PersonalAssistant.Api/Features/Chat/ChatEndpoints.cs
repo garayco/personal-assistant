@@ -26,6 +26,7 @@ public static class ChatEndpoints
         .WithName("SendMessage")
         .WithSummary("Envía un mensaje al chat, procesa la inferencia con el LLM y persiste la interacción.");
 
+        //GET /api/char/history/{sessionId}
         group.MapGet("/history/{sessionId:guid}", async Task<Results<Ok<GetChatHistoryResponse>, NotFound>> (
             Guid sessionId,
             GetChatHistoryHandler handler,

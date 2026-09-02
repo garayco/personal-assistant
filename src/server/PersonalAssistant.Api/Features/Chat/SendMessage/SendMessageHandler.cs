@@ -23,7 +23,7 @@ public class SendMessageHandler(AppDbContext db, ILlmClient llmClient)
         // 2. Registrar el mensaje del usuario
         var userMessage = new ChatMessage
         {
-            SessionId = chatSession.Id,
+            ChatSessionId = chatSession.Id,
             Role = MessageRole.User,
             Content = request.Message.Trim(),
             CreatedAt = DateTime.UtcNow
@@ -34,16 +34,18 @@ public class SendMessageHandler(AppDbContext db, ILlmClient llmClient)
         // 3) Leer historial reciente del chat
         var recentHistory = await db.ChatMessages
             .AsNoTracking()
-            .Where(m => m.SessionId == chatSession.Id && m.Id != userMessage.Id)
+            .Where(m => m.ChatSessionId == chatSession.Id && m.Id != userMessage.Id)
+            .OrderByDescending(m => m.CreatedAt)
             .Take(8)
             .OrderBy(m => m.CreatedAt)
             .Select(m => new ChatMessageItem(m.Role, m.Content))
             .ToListAsync(ct);
 
-        // crea flag de resumen
-        int totalMessagesCount = await db.ChatMessages
-            .CountAsync(m => m.SessionId == chatSession.Id, ct);
-        bool shouldSummarize = chatSession.Messages.Count >= 8 && (totalMessagesCount % 8 == 0);
+        // TODO: Move to call another endpint async 
+        int previousMessagesCount = await db.ChatMessages
+            .CountAsync(m => m.ChatSessionId == chatSession.Id && m.Id != userMessage.Id, ct);
+        const int SummaryInterval = 8;
+        bool shouldSummarize = previousMessagesCount > 0 && (previousMessagesCount % SummaryInterval == 0);
 
         // 4) Crear el request para el servicio de IA
         var aiRequest = new AiServiceRequest(
@@ -63,18 +65,19 @@ public class SendMessageHandler(AppDbContext db, ILlmClient llmClient)
         // 6) Guardar la respuesta del asistente
         var assistantMessage = new ChatMessage
         {
-            SessionId = chatSession.Id,
+            ChatSessionId = chatSession.Id,
             Role = MessageRole.Assistant,
             Content = aiReply,
             CreatedAt = DateTime.UtcNow
         };
+
         db.ChatMessages.Add(assistantMessage);
         await db.SaveChangesAsync(ct);
 
         // 7) Devolver la respuesta
         return new SendMessageResponse(
             Id: assistantMessage.Id,
-            SessionId: assistantMessage.SessionId,
+            SessionId: assistantMessage.ChatSessionId,
             Role: assistantMessage.Role,
             Content: assistantMessage.Content,
             CreatedAt: assistantMessage.CreatedAt

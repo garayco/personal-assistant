@@ -32,11 +32,11 @@ public class GetChatHistoryHandler(AppDbContext db)
 
         var messages = await db.ChatMessages
             .AsNoTracking()
-            .Where(m => m.SessionId == sessionId)
+            .Where(m => m.ChatSessionId == sessionId)
             .OrderBy(m => m.CreatedAt)
             .Select(m => new ChatHistoryItem(
                 m.Id,
-                m.SessionId,
+                m.ChatSessionId,
                 m.Role,
                 m.Content,
                 m.CreatedAt
