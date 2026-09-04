@@ -11,9 +11,13 @@ public record AiServiceRequest(
     Guid SessionId,
     string UserMessage,
     List<ChatMessageItem> History,
-    string? CurrentSumary,
+    string? CurrentSummary,
     string Task,
     string Persona,
     string Tone,
     bool ShouldSummarize
+);
+
+public record AiServiceResponse(
+    string Answer
 );

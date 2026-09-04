@@ -52,7 +52,7 @@ public class SendMessageHandler(AppDbContext db, ILlmClient llmClient)
             SessionId: chatSession.Id,
             UserMessage: userMessage.Content,
             History: recentHistory,
-            CurrentSumary: chatSession.Summary,
+            CurrentSummary: chatSession.Summary,
             Task: "chat",
             Persona: "assistant personal",
             Tone: "concise",
