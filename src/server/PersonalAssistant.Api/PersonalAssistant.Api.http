@@ -4,8 +4,8 @@ POST {{PersonalAssistant_Api_HostAddress}}/api/chat/send
 Content-Type: application/json
 
 {
-    "SessionId" : "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "Message" : "Hello !"
+    "sessionId" : "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "message" : "Tell me a joke"
 }
 
 ###
