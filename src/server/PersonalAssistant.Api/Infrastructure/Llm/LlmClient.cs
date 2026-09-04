@@ -1,5 +1,6 @@
 namespace PersonalAssistant.Api.Infrastructure.Llm;
 
+using System.Text.Json;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Options;
 
@@ -20,6 +21,8 @@ public class AiServiceOptions
 
 public class OpenAiLlmClient : ILlmClient
 {
+    private static readonly JsonSerializerOptions AiServiceJsonOptions = new(JsonSerializerDefaults.Web);
+
     private readonly HttpClient _httpClient;
     private readonly AiServiceOptions _options;
 
@@ -35,7 +38,11 @@ public class OpenAiLlmClient : ILlmClient
         AiServiceRequest aiRequest,
         CancellationToken ct)
     {
-        var response = await _httpClient.PostAsJsonAsync("chat", aiRequest, ct);
+        using var response = await _httpClient.PostAsJsonAsync(
+            "chat",
+            aiRequest,
+            AiServiceJsonOptions,
+            ct);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -43,8 +50,10 @@ public class OpenAiLlmClient : ILlmClient
             throw new HttpRequestException($"Error LLM ({response.StatusCode}): {error}");
         }
 
-        string? result = await response.Content.ReadFromJsonAsync<string>(cancellationToken: ct);
+        var result = await response.Content.ReadFromJsonAsync<AiServiceResponse>(cancellationToken: ct);
 
-        return result ?? "Sin respuesta del modelo.";
+        return string.IsNullOrWhiteSpace(result?.Answer)
+        ? "Sin respuesta del modelo."
+        : result.Answer;
     }
 }
