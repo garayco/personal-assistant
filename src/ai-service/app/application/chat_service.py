@@ -9,11 +9,13 @@ from app.infrastructure.ollama.client import ollama_client
 class ChatService:
     async def generate_response(self, request: AiServiceRequest) -> AiServiceResponse:
         try:
-            answer = await ollama_client.chat(build_messages(request))
+            result = await ollama_client.chat(build_messages(request))
         except (httpx.HTTPError, KeyError) as error:
             raise AiServiceUnavailableError from error
 
-        return AiServiceResponse(answer=answer)
+        return AiServiceResponse(
+            answer=result.content, prompt_tokens=result.prompt_tokens
+        )
 
 
 chat_service = ChatService()

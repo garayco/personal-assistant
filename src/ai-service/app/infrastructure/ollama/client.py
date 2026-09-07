@@ -1,12 +1,23 @@
 from typing import Any
+from dataclasses import dataclass
 
 import httpx
 
 from app.core.config import settings
 
 
+@dataclass
+class OllamaChatResult:
+    content: str
+    prompt_tokens: int
+    response_tokens: int
+
+
 class OllamaClient:
-    async def chat(self, messages: list[dict[str, str]]) -> str:
+    async def chat(
+        self,
+        messages: list[dict[str, str]],
+    ) -> OllamaChatResult:
         payload: dict[str, Any] = {
             "model": settings.ollama_model,
             "messages": messages,
@@ -21,7 +32,11 @@ class OllamaClient:
             response.raise_for_status()
             data = response.json()
 
-        return data["message"]["content"]
+        return OllamaChatResult(
+            content=data["message"]["content"],
+            prompt_tokens=data.get("prompt_eval_count", 0),
+            response_tokens=data.get("eval_count", 0),
+        )
 
 
 ollama_client = OllamaClient()

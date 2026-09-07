@@ -26,6 +26,7 @@ class AiServiceRequest(BaseModel):
 
 class AiServiceResponse(BaseModel):
     answer: str
+    prompt_tokens: int
 
 
 class SummaryRequest(BaseModel):
