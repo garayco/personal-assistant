@@ -29,7 +29,6 @@ class AiServiceRequest(CamelModel):
     current_summary: str | None = None
     relevant_memories: list[str] = Field(default_factory=list)
     active_habits: list[str] = Field(default_factory=list)
-    task: str = "chat"
     persona: str = "habit coach and personal assistant"
     tone: str = "concise and supportive"
 

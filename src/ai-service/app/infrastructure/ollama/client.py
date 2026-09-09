@@ -48,7 +48,7 @@ class OllamaClient:
         ) as client:
             # Primero intentamos con el endpoint moderno /api/embed
             embed_payload = {
-                "model": settings.ollama_model,
+                "model": settings.ollama_embedding_model,
                 "input": text,
             }
             resp = await client.post("/api/embed", json=embed_payload)
@@ -60,7 +60,7 @@ class OllamaClient:
 
             # Fallback al endpoint clásico /api/embeddings
             legacy_payload = {
-                "model": settings.ollama_model,
+                "model": settings.ollama_embedding_model,
                 "prompt": text,
             }
             resp_legacy = await client.post("/api/embeddings", json=legacy_payload)

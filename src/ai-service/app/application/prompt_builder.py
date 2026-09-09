@@ -69,7 +69,7 @@ def build_summary(request: SummaryRequest) -> list[dict[str, str]]:
         "1. 3RD PERSON ONLY: Write all facts in 3rd person (e.g. 'El usuario...'). Never use 1st person ('Me propuse').\n"
         "2. USER FACTS ONLY: Extract facts exclusively from what the User says about themselves. Ignore assistant advice.\n"
         "3. DO NOT DUPLICATE: If a fact already exists in ALREADY KNOWN FACTS and has not changed, do NOT include it in new_facts.\n"
-        "4. EXACT ID MATCHING: In updated_facts, only update a fact if its specific condition changed (e.g. ankle update goes to the ankle ID). Never overwrite a known fact with an unrelated habit.\n"
+        "4. EXACT ID MATCHING: In updated_facts, only update a fact if its specific condition changed (e.g. ankle update goes to the ankle ID). If there are no known facts to update, updated_facts MUST be []. Never return null for id.\n"
         "5. LANGUAGE: Output 100% in the language of the conversation. Do not mix English and Spanish."
     )
     content_parts.append(instructions)
