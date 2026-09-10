@@ -9,8 +9,8 @@ public class ChatSessionConfiguration : IEntityTypeConfiguration<ChatSession>
     public void Configure(EntityTypeBuilder<ChatSession> builder)
     {
         builder.HasKey(s => s.Id);
+        builder.Property(s => s.Title).HasMaxLength(200).IsRequired();
 
-        // Relación 1 a N con borrado en cascada
         builder.HasMany(s => s.Messages)
                .WithOne(m => m.ChatSession)
                .HasForeignKey(m => m.ChatSessionId)

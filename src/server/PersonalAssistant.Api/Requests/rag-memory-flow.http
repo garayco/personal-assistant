@@ -1,0 +1,73 @@
+### ==========================================================================
+### TEST SUITE: FLUJO DE MEMORIA JERÁRQUICA Y RAG (pgvector + bge-m3)
+### ==========================================================================
+### Propósito:
+### Validar de extremo a extremo que:
+### 1. El usuario declara un hecho específico en una conversación.
+### 2. Al alcanzar el umbral de Development (4 mensajes), SummaryWorker se dispara
+###    en segundo plano, compacta los 2 mensajes más antiguos y los vectoriza con bge-m3.
+### 3. En una sesión NUEVA y limpia, el LLM recupera dicho hecho mediante RAG
+###    y adapta su respuesta, demostrando memoria semántica a largo plazo.
+### ==========================================================================
+
+@Host = http://localhost:5110
+
+# Sesión 1: Donde se declara el hecho y se fuerza la compactación
+@FactSessionId = 11111111-1111-1111-1111-111111111111
+
+# Sesión 2: Sesión limpia (0 historial) para comprobar la recuperación RAG en frío
+@ProbeSessionId = 22222222-2222-2222-2222-222222222222
+
+
+### --------------------------------------------------------------------------
+### PASO 1: Turno 1 - Declarar el hecho personal
+### (Guarda 2 mensajes en BD: 1 User + 1 Assistant)
+### --------------------------------------------------------------------------
+POST {{Host}}/api/chat/send
+Content-Type: application/json
+
+{
+    "sessionId": "{{FactSessionId}}",
+    "message": "Hola, te cuento que tengo una lesión crónica en la rodilla derecha y tengo prohibido correr o hacer saltos de alto impacto."
+}
+
+### --------------------------------------------------------------------------
+### PASO 2: Turno 2 - Alcanzar umbral de Development
+### (Llega a 4 mensajes en BD -> Dispara el SummaryWorker en segundo plano)
+### El worker protegerá los 2 mensajes de este turno (ventana viva) y compactará
+### los 2 mensajes del Paso 1, insertando el hecho en session_memories.
+### --------------------------------------------------------------------------
+POST {{Host}}/api/chat/send
+Content-Type: application/json
+
+{
+    "sessionId": "{{FactSessionId}}",
+    "message": "Por favor ayúdame a estructurar una rutina suave para no perder condición física."
+}
+
+### --------------------------------------------------------------------------
+### PASO 3: Inspeccionar historial de la Sesión 1
+### (Verificar que los 4 mensajes están registrados)
+### --------------------------------------------------------------------------
+GET {{Host}}/api/chat/history/{{FactSessionId}}
+
+
+### --------------------------------------------------------------------------
+### PASO 4: LA PRUEBA DE FUEGO RAG (En Sesión Nueva @ProbeSessionId)
+### Nota: Esta sesión tiene historial vacío (History = []) y Summary = null.
+### Hacemos una pregunta indirecta. Si el LLM menciona la rodilla o prohíbe saltos,
+### la ÚNICA fuente de información posible es la memoria recuperada por RAG.
+### --------------------------------------------------------------------------
+POST {{Host}}/api/chat/send
+Content-Type: application/json
+
+{
+    "sessionId": "{{ProbeSessionId}}",
+    "message": "¿Qué ejercicios de cardio me recomiendas hacer hoy para sudar un poco en casa?"
+}
+
+### --------------------------------------------------------------------------
+### PASO 5: Inspeccionar historial de la Sesión 2
+### (Verificar que el diálogo de la sesión 2 se mantiene aislado e independiente)
+### --------------------------------------------------------------------------
+GET {{Host}}/api/chat/history/{{ProbeSessionId}}

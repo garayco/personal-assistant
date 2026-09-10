@@ -7,6 +7,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<SessionMemory> SessionMemories => Set<SessionMemory>();
+    public DbSet<Habit> Habits => Set<Habit>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

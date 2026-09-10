@@ -1,6 +1,5 @@
-namespace PersonalAssistant.Api.Features.Chat.GetChatHistory;
+namespace PersonalAssistant.Api.Features.Chat;
 
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using PersonalAssistant.Api.Domain.Enums;
 using PersonalAssistant.Api.Infrastructure.Database;
@@ -21,13 +20,12 @@ public record GetChatHistoryResponse(
 
 public class GetChatHistoryHandler(AppDbContext db)
 {
-
     public async Task<GetChatHistoryResponse?> HandleAsync(Guid sessionId, CancellationToken ct)
     {
         var sessionExists = await db.ChatSessions.AnyAsync(s => s.Id == sessionId, ct);
         if (!sessionExists)
         {
-            return null; // La sesión no existe
+            return null;
         }
 
         var messages = await db.ChatMessages

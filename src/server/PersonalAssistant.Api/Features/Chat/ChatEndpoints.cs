@@ -3,9 +3,6 @@ namespace PersonalAssistant.Api.Features.Chat;
 using Microsoft.AspNetCore.Http.HttpResults;
 using PersonalAssistant.Common.Extensions;
 
-using PersonalAssistant.Api.Features.Chat.SendMessage;
-using PersonalAssistant.Api.Features.Chat.GetChatHistory;
-
 public static class ChatEndpoints
 {
     public static IEndpointRouteBuilder MapChatEndpoints(this IEndpointRouteBuilder app)
@@ -26,7 +23,7 @@ public static class ChatEndpoints
         .WithName("SendMessage")
         .WithSummary("Envía un mensaje al chat, procesa la inferencia con el LLM y persiste la interacción.");
 
-        //GET /api/char/history/{sessionId}
+        // GET /api/chat/history/{sessionId}
         group.MapGet("/history/{sessionId:guid}", async Task<Results<Ok<GetChatHistoryResponse>, NotFound>> (
             Guid sessionId,
             GetChatHistoryHandler handler,

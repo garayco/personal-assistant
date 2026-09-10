@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PersonalAssistant.Api.Infrastructure.Database;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace PersonalAssistant.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260908194928_AddSessionMemoryAndHabits")]
+    partial class AddSessionMemoryAndHabits
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,7 +145,7 @@ namespace PersonalAssistant.Api.Migrations
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
-                        .HasColumnType("vector(1024)")
+                        .HasColumnType("vector(384)")
                         .HasColumnName("embedding");
 
                     b.HasKey("Id")

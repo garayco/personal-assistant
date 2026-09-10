@@ -6,5 +6,8 @@ public class ChatSession
     public string Title { get; set; } = "Nueva Conversación";
     public string? Summary { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime? LastSummarizedAt { get; set; }
+
     public ICollection<ChatMessage> Messages { get; set; } = [];
 }

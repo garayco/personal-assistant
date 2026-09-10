@@ -4,7 +4,6 @@ using PersonalAssistant.Api.Features;
 using PersonalAssistant.Api.Features.Chat;
 using PersonalAssistant.Api.Infrastructure;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. REGISTRO DE SERVICIOS (DI)
@@ -22,6 +21,11 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 // Herramientas de desarrollo
 builder.Services.AddOpenApi();
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHttpLogging(_ => { });
+}
+
 
 // 2. PIPELINE HTTP Y MAPEO DE RUTAS
 var app = builder.Build();
@@ -29,6 +33,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseHttpLogging();
 }
 
 app.UseHttpsRedirection();
